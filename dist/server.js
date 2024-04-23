@@ -1,16 +1,27 @@
 "use strict";
-const express = require('express');
-const app = express();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const app = (0, express_1.default)();
 const PORT = 3005;
 const elts_games = {};
 const elts_gameFinder = {};
 const elts = [];
-app.use(express.json()); // Pour parser les requêtes JSON
+app.use(express_1.default.json()); // Pour parser les requêtes JSON
 app.get('/data', (req, res) => {
     res.json(elts);
 });
+app.get('/data/last', (req, res) => {
+    res.json(elts.slice(-1));
+});
 app.post('/data', (req, res) => {
     elts.push(req.body);
+    let elts_by_vmId = elts.filter(elt => elt.vmId === req.body.vmId);
+    if (elts_by_vmId.length > 10) {
+        elts_by_vmId.shift();
+    }
     //console.log("req.body reçues =>", req.body.vmId); // Affiche les données reçues dans la console
     res.status(200).send('Données reçues');
 });
@@ -45,7 +56,6 @@ app.get('/games/:vmName', (req, res) => {
     const games_displayed = games.map(game => {
         return {
             gameId: game.gameId,
-            checkCond: game.checkCond,
             origin: game.origin
         };
     });
