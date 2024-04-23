@@ -32,18 +32,20 @@ interface Elts_GameFinder {
         nbGamesTotal: number;
         dateSearch: string;
     }[]
-
 }
 
-interface Elts_Recus {
-    vmId: string,
-    status: string,
-    timestamp: string
+
+interface Elts {
+    [vmName: string]: {
+        vmName: string;
+        status: string;
+        timestamp: string;
+    }[]
 }
 
 const elts_games: Elts_Games = {};
 const elts_gameFinder: Elts_GameFinder = {}
-const elts: Elts_Recus[] = []
+const elts: Elts = {};
 
 
 app.use(express.json()); // Pour parser les requêtes JSON
@@ -53,14 +55,22 @@ app.get('/data', (req: Request, res: Response) => {//res.send('Bonjour du serveu
     res.json(elts)
 });
 app.get('/data/last', (req: Request, res: Response) => {//res.send('Bonjour du serveur!');
-    res.json(elts.slice(-1))
+    const copy = JSON.parse(JSON.stringify(elts));
+    for (const vmName of Object.keys(elts)) {
+        copy[vmName] = elts[vmName].slice(-1);
+    }
+    res.json(copy);
 });
 app.post('/data', (req, res) => {
-    elts.push(req.body);
 
-    let elts_by_vmId = elts.filter(elt => elt.vmId === req.body.vmId);
-    if (elts_by_vmId.length > 10) {
-        elts_by_vmId.shift();
+    if (!elts[req.body.vmName]) {
+        elts[req.body.vmName] = []
+    }
+
+    elts[req.body.vmName].push(req.body)
+
+    if (elts[req.body.vmName].length > 10) {
+        elts[req.body.vmName].shift();
     }
 
     //console.log("req.body reçues =>", req.body.vmId); // Affiche les données reçues dans la console
